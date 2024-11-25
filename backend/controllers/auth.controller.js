@@ -63,15 +63,18 @@ export const login = async (req, res) => {
     if (!username || !password) {
       return res.status(400).json({ message: "Please provide Credentiols" });
     }
-
     //check if user exists in redis cache
     const data = await redisClient.get(username);
-    const adminCache = JSON.parse(data);
-    const pw = await bcrypt.compare(password, adminCache.password);
-    if (adminCache && pw) {
-      console.log("User found in cache");
-      genarateTokenAndSetCookie(res, adminCache._id);
-      return res.status(200).json(adminCache);
+    if (data) {
+      const adminCache = JSON.parse(data);
+
+      const pw = await bcrypt.compare(password, adminCache.password);
+
+      if (adminCache && pw) {
+        console.log("User found in cache");
+        genarateTokenAndSetCookie(res, adminCache._id);
+        return res.status(200).json(adminCache);
+      }
     }
 
     //check if user exists in database
